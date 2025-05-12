@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sepetim</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #007BFF;
+            color: #fff;
+        }
+        .total {
+            text-align: right;
+            font-size: 1.2rem;
+            margin-top: 20px;
+        }
+        .buttons {
+            text-align: center;
+        }
+        .buttons button {
+            padding: 10px 20px;
+            border: none;
+            background: #007BFF;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        .buttons button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sepetim</h1>
+        <!-- sepet.html -->
+<table>
+    <thead>
+        <tr>
+            <th>Resim</th>
+            <th>Ürün Adı</th>
+            <th>Miktar</th>
+            <th>Fiyat</th>
+            <th>Toplam</th>
+            <th>İşlem</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if cart %} <!-- Sepette ürün varsa -->
+            {% for item in cart %}
+            <tr>
+                <td><img src="{{ item.image }}" alt="{{ item.name }}" style="width: 50px;"></td>
+                <td>{{ item.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ "%.2f"|format(item.price) }}₺</td> <!-- Fiyat formatlama -->
+                <td>{{ "%.2f"|format(item.price * item.quantity) }}₺</td> <!-- Toplam formatlama -->
+                <td>
+                    <!-- Silme işlemi için form veya link eklenebilir -->
+                    <!-- sepet.html içindeki hatalı kısım -->
+                <form method="POST" action="{{ url_for('remove_from_cart') }}"> <!-- HATA BURADA -->
+                    <input type="hidden" name="product_name" value="{{ item.name }}">
+                    <button type="submit" class="silBtn">Sil</button>
+                </form>
+                </td>
+            </tr>
+            {% endfor %}
+        {% else %} <!-- Sepet boşsa -->
+            <tr>
+                <td colspan="6" style="text-align: center;">Sepetinizde ürün bulunmamaktadır.</td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+        <div class="total">
+            <strong id="totalText">Toplam: 0₺</strong>
+        </div>
+        <div class="buttons">
+            <button type="button" onclick="location.href='/'">Alışverişe Devam Et</button>
+            <button type="button" onclick="location.href='/buy'">Ödeme Yap</button>
+        </div>
+    </div>
+    <script>
+        // Toplamı hesaplayan fonksiyon
+        function recalcTotal() {
+            let total = 0;
+            const rows = document.querySelectorAll("#sepetTable tbody tr");
+            rows.forEach(row => {
+                // Fiyat hücresini al (4. sütun)
+                let fiyatText = row.cells[3].innerText;
+                // Örneğin "200000₺" ya da "1.000₺" şeklinde ise nokta ve ₺ simgesini kaldır
+                fiyatText = fiyatText.replace(/[₺.]/g, "");
+                total += parseInt(fiyatText) || 0;
+            });
+            document.getElementById("totalText").innerText = "Toplam: " + total + "₺";
+        }
+        
+        // Her "Sil" butonuna tıklanıldığında satırı kaldırıp toplamı yeniden hesaplar
+        function attachSilEvent() {
+            const silButonlar = document.querySelectorAll(".silBtn");
+            silButonlar.forEach(btn => {
+                btn.addEventListener("click", function() {
+                    const row = this.closest("tr");
+                    row.parentNode.removeChild(row);
+                    recalcTotal();
+                });
+            });
+        }
+        
+        // Sayfa yüklendiğinde toplamı hesapla ve sil eventlerini ekle
+        window.addEventListener("DOMContentLoaded", function() {
+            recalcTotal();
+            attachSilEvent();
+        });
+    </script>
+</body>
+</html>
